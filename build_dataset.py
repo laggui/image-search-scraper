@@ -1,6 +1,6 @@
 import re
 import json
-from search_clients import GoogleCustomSearchClient, BingSearchClient
+from clients import GoogleCustomSearchClient, BingSearchClient
 from download_images import download_image
 from parsers import parse_arguments, parse_conf
 
