@@ -1,5 +1,4 @@
 import re
-import json
 from clients import GoogleCustomSearchClient, BingSearchClient
 from download_images import download_image
 from parsers import parse_arguments, parse_conf
@@ -13,9 +12,8 @@ def split_request_into_n_queries(num_images, max_results_per_query):
     n_queries = num_images // max_results_per_query
     n_rest = num_images % max_results_per_query
 
-    num_img_list = []
-    [num_img_list.append(max_results_per_query) for n in range(n_queries)]
-    if n_rest: 
+    num_img_list = [max_results_per_query] * n_queries
+    if n_rest:
         num_img_list.append(n_rest)
         n_queries += 1
     return (n_queries, num_img_list)
@@ -47,8 +45,8 @@ def get_google_images(cse_id, api_key, save_dir, query, start_idx, num_images):
             diff = (num_images + start_idx - 1) - MAX_RESULTS
             if start_idx - diff < 1:
                 diff = start_idx - 1
-            msg = ("(Warning) Results [{0}-{1}] requested. Google CSE only returns the first {2} results."
-                   "Truncated request to results [{3}-{2}].")
+            msg = ("(Warning) Results [{0}-{1}] requested. Google CSE only returns the first {2}"
+                   " results. Truncated request to results [{3}-{2}].")
             print(msg.format(start_idx, num_images + start_idx - 1, MAX_RESULTS, start_idx - diff))
             start_idx -= diff
             if num_images > MAX_RESULTS: num_images = MAX_RESULTS
@@ -84,20 +82,20 @@ def get_bing_images(api_key, save_dir, query, offset, num_images):
         n_results = MAX_RESULTS_PER_Q
     else:
         n_results = num_images
-    
+
     # retrieve search results until num_images have been retrieved or bing api has no more
     # unique images to return
     img_cnt = 0
-    while(n_results > 0):
+    while n_results > 0:
         search, next_offs, _ = client.search(query, offset=offset, count=n_results)
 
         for i, item in enumerate(search):
             filename = generate_filename_from_fquery(fquery, item, img_cnt + i)
             download_image(item['url'], "{0}/{1}".format(save_dir, fquery), filename)
-        
+
         if i + 1 < n_results:
-            msg = ("(Warning) {0}/{1} results requested for current query. Bing's image search API only"
-                " returned {2} results. Subsequent queries might return duplicates.")
+            msg = ("(Warning) {0}/{1} results requested for current query. Bing's image search API"
+                   " only returned {2} results. Subsequent queries might return duplicates.")
             print(msg.format(n_results, num_images, i + 1))
         offset = next_offs
         img_cnt += i
@@ -137,9 +135,10 @@ def build_dataset(command, **kwargs):
                         # iterate through every CSE ID for specified API
                         for cse in google_api['cse']:
                             args.update(cse_id=cse['id'])
-                            # get images for every single query for each specified api_key/cse_id combo
+                            # get images for every single query for each api_key/cse_id combo
                             for q in cse['queries']:
-                                args.update({'query':q['query'], 'start_idx':q['start'], 'num_images':q['num']})
+                                args.update({'query':q['query'], 'start_idx':q['start'],
+                                             'num_images':q['num']})
                                 get_google_images(**args)
                 # iterate through every bing API
                 elif 'bing' in api:
@@ -147,7 +146,8 @@ def build_dataset(command, **kwargs):
                         args.update(api_key=bing_api['key'], save_dir=bing_dir)
                         # get images for every single query
                         for q in bing_api['queries']:
-                            args.update({'query':q['query'], 'offset':q['start'] - 1, 'num_images':q['num']})
+                            args.update({'query':q['query'], 'offset':q['start'] - 1,
+                                         'num_images':q['num']})
                             get_bing_images(**args)
 
 if __name__ == '__main__':
