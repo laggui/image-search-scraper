@@ -2,7 +2,7 @@
 
 ### Overview
 
-This automated tool allows you to construct your very own dataset for your personal application or research needs by scraping the web for images that match your queries (classes, labels, etc.). It allows for single query usage through the command line arguments, with the available APIs specified below, or by constructing a simple JSON configuration file in order to automate the process of building your dataset through the use of multiple image search APIs, each allowing numerous queries.
+This user-friendly application allows you to easily construct your very own dataset for your personal application or research needs by scraping the web for images that match your queries (classes, labels, etc.). Its friendly interface allows for single or multiple queries to automate the process of building your dataset through the use of multiple image search APIs, each allowing numerous queries.
 
 ----
 
@@ -10,8 +10,6 @@ This automated tool allows you to construct your very own dataset for your perso
 
 1. [Supported APIs](#supported-apis)
 1. [Usage](#usage)
-   1. [Single query](#single-query)
-   1. [Using a JSON config file](#using-a-json-configuration-file)
 1. [Limitations](#limitations)
    1. [Google Custom Search JSON API](#google-custom-search-json-api)
    1. [Bing Image Search API v7](#bing-image-search-api-v7)
@@ -26,44 +24,7 @@ We currently support image scraping with Google's [Custom Search JSON API][googl
 
 ### Usage
 
-As mentioned previously, there are two ways to use this tool from the command line with python: by single query operation or by specifying a valid JSON configuration file to automate the building/scraping process.
-
-#### Single query
-
-##### 1. Google Custom Search API
-
-```sh
-$ python build_dataset.py google [arguments...]
-```
-
-##### 2. Bing Image Search API
-
-```sh
-$ python build_dataset.py bing [arguments...]
-```
-
-##### Arguments
-
-| **Argument**      | **Required**    | **Default** | **Description**                                             |
-|:------------------|:---------------:|:-----------:|:------------------------------------------------------------|
-| --cse-id          | google only     | -           | Google Custom Search Engine ID.                             |
-| --api-key         | Yes             | -           | Bing Image Search API or Google Custom Search JSON API key. |
-| --save-dir        | Yes             | -           | Path to parent directory where scraped images will be saved.|
-| --query           | Yes             | -           | Search query term. The term cannot be empty.                |
-| --start-idx       | No              | 1           | Index of the first result to return.                        |
-| --num-images      | No              | 10          | Number of images to retrieve.                               |
-
-#### Using a JSON configuration file
-
-```sh
-$ python build_dataset.py conf <path/to/config/filename.json>
-```
-
-| **Argument**  | **Required** | **Description**                                            |
-|:--------------|:-------------|:-----------------------------------------------------------|
-| file          | Yes          | Path to your JSON configuration file (including filename). |
-
-For a detailed explanation of the JSON configuration file format and usage, please refer to the [documentation](config-docs).
+*In progress*
 
 ### Limitations
 
