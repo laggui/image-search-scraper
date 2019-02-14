@@ -1,9 +1,8 @@
 import re
 from clients import GoogleCustomSearchClient, BingSearchClient
 from download_images import download_image
-from parsers import parse_arguments, parse_conf
 
-def split_request_into_n_queries(num_images, max_results_per_query):
+def split_request_into_n_queries(num_images: int, max_results_per_query: int):
     '''
     Return the number of queries necessary to retrieve num_images based on the maximum
     results per query, along with a list containing the number of images for each query
@@ -18,16 +17,16 @@ def split_request_into_n_queries(num_images, max_results_per_query):
         n_queries += 1
     return (n_queries, num_img_list)
 
-def generate_filename_from_fquery(fquery, search_item, idx):
+def generate_filename_from_fquery(fquery: str, search_item: str, idx: int):
     '''
     Generate a filename from the specified formatted query with the file extension and idx
     '''
     ext = search_item['type'].split('/')[-1]
     if not ext:
         ext = 'jpeg'
-    return"{0}_{1}.{2}".format(fquery, str(idx).zfill(4), ext)
+    return f'{fquery}_{str(idx).zfill(4)}.{ext}'
 
-def get_google_images(cse_id, api_key, save_dir, query, start_idx, num_images):
+def get_google_images(cse_id: str, api_key: str, save_dir: str, query: str, start_idx: int, num_images: int):
     '''
     Get images for the specified query through the Google Custom Search Engine
     '''
@@ -65,9 +64,9 @@ def get_google_images(cse_id, api_key, save_dir, query, start_idx, num_images):
 
         for i, item in enumerate(search):
             filename = generate_filename_from_fquery(fquery, item, i + idx_offs)
-            download_image(item['url'], "{0}/{1}".format(save_dir, fquery), filename)
+            download_image(item['url'], f'{save_dir}/{fquery}', filename)
 
-def get_bing_images(api_key, save_dir, query, offset, num_images):
+def get_bing_images(api_key: str, save_dir: str, query: str, offset: int, num_images: int):
     '''
     Get images for the specified query through Bing's image search API
     '''
@@ -91,7 +90,7 @@ def get_bing_images(api_key, save_dir, query, offset, num_images):
 
         for i, item in enumerate(search):
             filename = generate_filename_from_fquery(fquery, item, img_cnt + i)
-            download_image(item['url'], "{0}/{1}".format(save_dir, fquery), filename)
+            download_image(item['url'], f'{save_dir}/{fquery}', filename)
 
         if i + 1 < n_results:
             msg = ("(Warning) {0}/{1} results requested for current query. Bing's image search API"
@@ -101,55 +100,3 @@ def get_bing_images(api_key, save_dir, query, offset, num_images):
         img_cnt += i
         # update number of results left to request for subsequent query
         n_results = num_images - n_results
-
-def build_dataset(command, **kwargs):
-    '''
-    Build dataset from specified command line query or from configuration file (allows use of
-    multiple APIs and queries)
-    '''
-    GOOGLE_SUBDIR = "/google-api"
-    BING_SUBDIR = "/bing-api"
-
-    if kwargs is not None:
-        if command == 'google':
-            # get images with specified command line arguments
-            kwargs.update(save_dir=kwargs['save_dir']+GOOGLE_SUBDIR)
-            get_google_images(**kwargs)
-        elif command == 'bing':
-            # get images with specified command line arguments
-            kwargs.update(save_dir=kwargs['save_dir']+BING_SUBDIR, offset=kwargs['start_idx'] - 1)
-            kwargs.pop('start_idx', None)
-            get_bing_images(**kwargs)
-        elif command == 'conf':
-            # parse the JSON conf file to build the dataset
-            data = parse_conf(kwargs.get('file'))
-            args = {}
-            google_dir = data['save_dir'] + GOOGLE_SUBDIR
-            bing_dir = data['save_dir'] + BING_SUBDIR
-            # iterate through every specified API
-            for api in data['api']:
-                # iterate through every google API
-                if 'google' in api:
-                    for google_api in api['google']:
-                        args.update(api_key=google_api['key'], save_dir=google_dir)
-                        # iterate through every CSE ID for specified API
-                        for cse in google_api['cse']:
-                            args.update(cse_id=cse['id'])
-                            # get images for every single query for each api_key/cse_id combo
-                            for q in cse['queries']:
-                                args.update({'query':q['query'], 'start_idx':q['start'],
-                                             'num_images':q['num']})
-                                get_google_images(**args)
-                # iterate through every bing API
-                elif 'bing' in api:
-                    for bing_api in api['bing']:                    
-                        args.update(api_key=bing_api['key'], save_dir=bing_dir)
-                        # get images for every single query
-                        for q in bing_api['queries']:
-                            args.update({'query':q['query'], 'offset':q['start'] - 1,
-                                         'num_images':q['num']})
-                            get_bing_images(**args)
-
-if __name__ == '__main__':
-    args = parse_arguments()
-    build_dataset(**args)

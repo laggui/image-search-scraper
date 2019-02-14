@@ -1,0 +1,10 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+
+<file alias="app">resources/app.png</file>
+<file alias="delete">resources/delete.png</file>
+<file alias="folder">resources/folder.png</file>
+<file alias="plus">resources/plus.png</file>
+<file alias="search-download">resources/search_download.png</file>
+</qresource>
+</RCC>
