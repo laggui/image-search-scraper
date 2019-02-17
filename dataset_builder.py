@@ -1,9 +1,9 @@
 import sys
 import resources
 
-from PyQt5.QtWidgets import QApplication, QScrollArea
+from PyQt5.QtWidgets import QApplication, QMainWindow, QScrollArea
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QFrame
 
 from widgets import PlusIcon, SearchClient
 from widgets.search_client import SupportedSearchClients
@@ -11,7 +11,7 @@ from widgets.utils import newIcon
 
 __appname__ = 'Dataset Builder'
 
-class DatasetBuilderApp(QScrollArea):
+class DatasetBuilderApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.title = __appname__
@@ -23,8 +23,10 @@ class DatasetBuilderApp(QScrollArea):
 
     def initUI(self):
         # Main layout
-        centralWidget = QWidget()
-        listLayout = QVBoxLayout(centralWidget)
+        centralWidget = QWidget(self)
+        self.setCentralWidget(centralWidget)
+        scrollAreaContent = QWidget()
+        listLayout = QVBoxLayout()
 
         # Search Clients layout
         self.clientsLayout = QVBoxLayout()
@@ -43,11 +45,20 @@ class DatasetBuilderApp(QScrollArea):
         listLayout.addStretch(1)
 
         # Connect signals and slots
-        addGoogleAPI.clickableIcon().clicked.connect(lambda x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
-        addBingAPI.clickableIcon().clicked.connect(lambda x=SupportedSearchClients.BING: self.addSearchClient(x))
+        addGoogleAPI.clickableIcon().clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
+        addBingAPI.clickableIcon().clicked.connect(lambda state, x=SupportedSearchClients.BING: self.addSearchClient(x))
 
-        self.setWidget(centralWidget)
-        self.setWidgetResizable(True)
+        # Scroll area
+        scroll = QScrollArea()
+        scroll.setWidget(scrollAreaContent)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setContentsMargins(0, 0, 0, 0)
+        scrollLayout = QVBoxLayout()
+        scrollLayout.addWidget(scroll)
+        scrollAreaContent.setLayout(listLayout)
+        centralWidget.setLayout(scrollLayout)
+        centralWidget.layout().setContentsMargins(0, 0, 0, 0)
 
         # Window settings
         self.setWindowTitle(self.title)
@@ -55,6 +66,8 @@ class DatasetBuilderApp(QScrollArea):
         self.setWindowIcon(newIcon('app'))
         self.center()
         self.show()
+
+    # def sendQuery(self)
 
     def addSearchClient(self, client: SupportedSearchClients):
         self.clientsLayout.addWidget(SearchClient(client))

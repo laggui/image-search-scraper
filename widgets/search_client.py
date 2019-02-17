@@ -29,7 +29,7 @@ class SearchClient(QGroupBox):
         # Main vertical layout
         self.mainLayout = QVBoxLayout()
         self.mainLayout.setAlignment(Qt.AlignTop)
-        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+        self.mainLayout.setContentsMargins(0, 0, 6, 0)
 
         # Delete button and its layout
         deleteLayout = QHBoxLayout()
