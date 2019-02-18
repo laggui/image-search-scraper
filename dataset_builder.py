@@ -3,9 +3,10 @@ import resources
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QScrollArea
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QFrame
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QFrame, QAction
+from PyQt5.QtCore import Qt
 
-from widgets import PlusIcon, SearchClient
+from widgets import PlusIcon, SearchClient, ToolBar
 from widgets.search_client import SupportedSearchClients
 from widgets.utils import newIcon
 
@@ -44,10 +45,6 @@ class DatasetBuilderApp(QMainWindow):
 
         listLayout.addStretch(1)
 
-        # Connect signals and slots
-        addGoogleAPI.clickableIcon().clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
-        addBingAPI.clickableIcon().clicked.connect(lambda state, x=SupportedSearchClients.BING: self.addSearchClient(x))
-
         # Scroll area
         scroll = QScrollArea()
         scroll.setWidget(scrollAreaContent)
@@ -60,6 +57,17 @@ class DatasetBuilderApp(QMainWindow):
         centralWidget.setLayout(scrollLayout)
         centralWidget.layout().setContentsMargins(0, 0, 0, 0)
 
+        # Toolbar
+        toolbar = ToolBar()
+        self.addToolBar(Qt.TopToolBarArea, toolbar)
+
+        # Dock widgets
+
+        # Connect signals and slots
+        addGoogleAPI.clickableIcon().clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
+        addBingAPI.clickableIcon().clicked.connect(lambda state, x=SupportedSearchClients.BING: self.addSearchClient(x))
+        toolbar.actionTriggered[QAction].connect(self.toolButtonPressed)
+
         # Window settings
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
@@ -71,6 +79,9 @@ class DatasetBuilderApp(QMainWindow):
 
     def addSearchClient(self, client: SupportedSearchClients):
         self.clientsLayout.addWidget(SearchClient(client))
+
+    def toolButtonPressed(self, button):
+        print(f'pressed tool button is {button.text()}')
 
     def center(self):
         qtRectangle = self.frameGeometry()

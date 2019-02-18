@@ -17,3 +17,6 @@ from .search_box import SearchBox
 
 # SearchClient
 from .search_client import SearchClient
+
+# ToolBar
+from .toolbar import ToolBar
