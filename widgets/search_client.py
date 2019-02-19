@@ -14,15 +14,12 @@ class SearchClient(QGroupBox):
     """
     _titles = {SupportedSearchClients.GOOGLE: 'Google Custom Search JSON API',
               SupportedSearchClients.BING: 'Bing Image Search API v7'}
-    def __init__(self, client: SupportedSearchClients, parent: QWidget = None):
+    def __init__(self, client: SupportedSearchClients, saveDirectory: str, parent: QWidget = None):
         super().__init__(self._titles[client], parent)
-        # pal = QPalette()
-        # pal.setColor(QPalette.Background, QColor.fromRgba64(0, 0, 0, (65535/100)*3))
-        # self.setAutoFillBackground(True)
-        # self.setPalette(pal)
         self.client = client
         self.searchCount = 1
         self.maxResults = 500
+        self.defaultSaveDirectory = saveDirectory
 
         self.setContentsMargins(11, 3, 3, 11)
         
@@ -53,7 +50,7 @@ class SearchClient(QGroupBox):
         # Search queries layout
         self.queriesLayout = QVBoxLayout()
         # Add search box
-        searchBox = SearchBox(self.maxResults, f'Query #{self.searchCount}')
+        searchBox = SearchBox(self.maxResults, f'Query #{self.searchCount}', self.defaultSaveDirectory)
         self.queriesLayout.addWidget(searchBox)
         self.mainLayout.addLayout(self.queriesLayout)
 
@@ -69,17 +66,14 @@ class SearchClient(QGroupBox):
         searchBox.delete.connect(self.updateSearchBoxTitles)
         addQuery.clickableIcon().clicked.connect(self.addSearchBox)
 
-    def updateSearchBoxTitles(self):
-        self.searchCount -= 1
-        i = self.searchCount - 1
+    def setDefaultSaveDirectory(self, directory: str):
+        self.defaultSaveDirectory = directory
         for s in self.queriesLayout.parentWidget().findChildren(SearchBox):
-            if not s.deleteInProgress:
-                s.setProperties(f'Query #{self.searchCount - i}')
-                i -= 1
+            s.setSaveDirectory(directory)
 
     def addSearchBox(self):
         self.searchCount += 1
-        searchBox = SearchBox(self.maxResults, f'Query #{self.searchCount}')
+        searchBox = SearchBox(self.maxResults, f'Query #{self.searchCount}', self.defaultSaveDirectory)
         self.queriesLayout.addWidget(searchBox)
         searchBox.delete.connect(self.updateSearchBoxTitles)
 
@@ -92,6 +86,15 @@ class SearchClient(QGroupBox):
                     widget.deleteLater()
                 else:
                     self._clearLayout(item.layout())
+
+    @pyqtSlot()
+    def updateSearchBoxTitles(self):
+        self.searchCount -= 1
+        i = self.searchCount - 1
+        for s in self.queriesLayout.parentWidget().findChildren(SearchBox):
+            if not s.deleteInProgress:
+                s.setProperties(f'Query #{self.searchCount - i}')
+                i -= 1
 
     @pyqtSlot()
     def destroy(self):

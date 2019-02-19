@@ -8,7 +8,7 @@ class SearchBox(QGroupBox):
     Groupbox widget layout for a search API client's queries
     """
     delete = pyqtSignal()
-    def __init__(self, maxResults: int, title: str = 'Query #1', parent: QWidget = None):
+    def __init__(self, maxResults: int, title: str, saveDirectory: str, parent: QWidget = None):
         super().__init__(title, parent)
         self.setContentsMargins(11, 3, 3, 11)
         self.deleteInProgress = False
@@ -46,7 +46,7 @@ class SearchBox(QGroupBox):
         self.mainLayout.addLayout(numImagesLayout)
 
         # Save directory
-        self.saveDir = DirectorySelector()
+        self.saveDir = DirectorySelector(saveDirectory)
         self.mainLayout.addWidget(self.saveDir)
 
         self.mainLayout.addStretch(1)
@@ -63,6 +63,9 @@ class SearchBox(QGroupBox):
 
     def searchQuery(self):
         return self.searchTextBox.toPlainText()
+
+    def setSaveDirectory(self, directory: str):
+        self.saveDir.setSelectedDirectory(directory)
 
     def setProperties(self, title: str, marginLeft: int = 11,
                       marginTop: int = 3, marginRight: int = 3, marginBottom: int = 11):
