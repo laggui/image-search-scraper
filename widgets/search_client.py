@@ -6,16 +6,18 @@ from widgets import DeleteButton, PlusIcon, SearchBox, TextBox
 
 class SupportedSearchClients(Enum):
     GOOGLE = 0
-    BING = 1
+    GOOGLE_API = 1
+    BING_API = 2
 
 class SearchClient(QGroupBox):
     """
-    Search API Client groupbox widget layout
+    Search Client groupbox widget layout
     """
     delete = pyqtSignal()
     searchCountUpdated = pyqtSignal(int, str)
-    _titles = {SupportedSearchClients.GOOGLE: 'Google Custom Search JSON API',
-              SupportedSearchClients.BING: 'Bing Image Search API v7'}
+    _titles = {SupportedSearchClients.GOOGLE: 'Google Image Scraper',
+               SupportedSearchClients.GOOGLE_API: 'Google Custom Search JSON API',
+               SupportedSearchClients.BING_API: 'Bing Image Search API v7'}
     def __init__(self, client: SupportedSearchClients, saveDirectory: str, parent: QWidget = None):
         super().__init__(self._titles[client], parent)
         self.client = client
@@ -39,15 +41,16 @@ class SearchClient(QGroupBox):
         self.mainLayout.addLayout(deleteLayout)
 
         # API keys text boxes
-        keysLayout = QHBoxLayout()
-        self.apiKey = TextBox('Enter your API key here...')
-        keysLayout.addWidget(self.apiKey)
-        if self.client == SupportedSearchClients.GOOGLE:
-            self.cseID = TextBox('Google Custom Search Engine ID...')
-            keysLayout.addWidget(self.cseID)
-            self.maxResults = 100
-        keysLayout.addStretch(1)        
-        self.mainLayout.addLayout(keysLayout)
+        if self.client == SupportedSearchClients.GOOGLE_API or self.client == SupportedSearchClients.BING_API:
+            keysLayout = QHBoxLayout()
+            self.apiKey = TextBox('Enter your API key here...')
+            keysLayout.addWidget(self.apiKey)
+            if self.client == SupportedSearchClients.GOOGLE_API:
+                self.cseID = TextBox('Google Custom Search Engine ID...')
+                keysLayout.addWidget(self.cseID)
+                self.maxResults = 100
+            keysLayout.addStretch(1)        
+            self.mainLayout.addLayout(keysLayout)
 
         # Search queries layout
         self.queriesLayout = QVBoxLayout()

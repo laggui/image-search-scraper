@@ -37,7 +37,7 @@ class DatasetBuilderApp(QMainWindow):
 
         # Search Clients layout
         self.clientsLayout = QVBoxLayout()
-        firstSearchClient = SearchClient(SupportedSearchClients.GOOGLE, self.defaultSaveDir)
+        firstSearchClient = SearchClient(SupportedSearchClients.GOOGLE_API, self.defaultSaveDir)
         self.clientsLayout.addWidget(firstSearchClient)
         self.clientCount = 1 # update client count
         self.searchCount = 1
@@ -79,11 +79,11 @@ class DatasetBuilderApp(QMainWindow):
         # Dock widgets
 
         # Connect signals and slots
-        #addGoogleScraper.clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
+        addGoogleScraper.clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
         self.searchCountUpdated.connect(self.updateToolbar)
         self.clientCountUpdated.connect(self.updateToolbar)
-        addGoogleAPI.clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
-        addBingAPI.clicked.connect(lambda state, x=SupportedSearchClients.BING: self.addSearchClient(x))
+        addGoogleAPI.clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE_API: self.addSearchClient(x))
+        addBingAPI.clicked.connect(lambda state, x=SupportedSearchClients.BING_API: self.addSearchClient(x))
         self.toolbar.setSaveDirButton().clicked.connect(self.setDefaultSaveDirectory)
         # self.toolbar.searchAllButton().clicked.connect(self.scrapeAllImages)
         self.toolbar.deleteAllButton().clicked.connect(self.removeAllSearchClients)
