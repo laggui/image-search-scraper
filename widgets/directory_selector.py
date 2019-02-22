@@ -11,7 +11,8 @@ class DirectorySelector(QWidget):
         super().__init__(parent)
         # Layout
         hLayout = QHBoxLayout()
-        dirSelect = ImageButton('folder', size)
+        dirSelect = ImageButton('folder', size, size)
+        dirSelect.setToolTip('Change Save Directory')
         hLayout.addWidget(dirSelect)
         self.directory = QLabel(directory)
         hLayout.addWidget(self.directory)

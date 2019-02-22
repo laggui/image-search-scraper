@@ -7,7 +7,7 @@ class DeleteButton(ImageButton):
     Delete image button with personalized style sheet
     """
     def __init__(self, size: int = 18, parent: QWidget = None):
-        super().__init__('delete', size, parent)
+        super().__init__('delete', size, size, parent)
 
     def initStyleSheet(self):
         self.setObjectName('DeleteButton')

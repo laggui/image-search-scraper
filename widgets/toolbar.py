@@ -11,7 +11,7 @@ class ToolBar(QToolBar):
         super().__init__('delete', parent)
         self.setStyleSheet('QToolButton:hover{background: rgba(0, 0, 0, 10%);}')
         # Set default save directory
-        setSaveDirAction = QAction(newIcon('folder'), 'Set Default Save Directory', self)
+        setSaveDirAction = QAction(newIcon('folder'), 'Set Default Save Directory For All', self)
         self.addAction(setSaveDirAction)
         self.setSaveDir = self.widgetForAction(setSaveDirAction)
 

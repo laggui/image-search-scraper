@@ -1,6 +1,9 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 
+<file alias="add-bing-api">resources/add_bing_api.png</file>
+<file alias="add-google-api">resources/add_google_api.png</file>
+<file alias="add-google-scraper">resources/add_google_scraper.png</file>
 <file alias="app">resources/app.png</file>
 <file alias="delete">resources/delete.png</file>
 <file alias="folder">resources/folder.png</file>

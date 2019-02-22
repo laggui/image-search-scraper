@@ -5,15 +5,17 @@ from pathlib import Path
 from PyQt5.QtWidgets import QApplication, QMainWindow, QScrollArea
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QFrame, QAction, QFileDialog
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
 
-from widgets import PlusIcon, SearchClient, ToolBar
+from widgets import ImageButton, PlusIcon, SearchClient, ToolBar
 from widgets.search_client import SupportedSearchClients
 from widgets.utils import newIcon
 
 __appname__ = 'Dataset Builder'
 
 class DatasetBuilderApp(QMainWindow):
+    searchCountUpdated = pyqtSignal()
+    clientCountUpdated = pyqtSignal()
     def __init__(self):
         super().__init__()
         self.title = __appname__
@@ -22,6 +24,8 @@ class DatasetBuilderApp(QMainWindow):
         self.width = 800
         self.height = 640
         self.defaultSaveDir = str(Path.home())
+        self.searchCount = 0
+        self.clientCount = 0
         self.initUI()
 
     def initUI(self):
@@ -33,16 +37,25 @@ class DatasetBuilderApp(QMainWindow):
 
         # Search Clients layout
         self.clientsLayout = QVBoxLayout()
-        self.clientsLayout.addWidget(SearchClient(SupportedSearchClients.GOOGLE, self.defaultSaveDir))
+        firstSearchClient = SearchClient(SupportedSearchClients.GOOGLE, self.defaultSaveDir)
+        self.clientsLayout.addWidget(firstSearchClient)
+        self.clientCount = 1 # update client count
+        self.searchCount = 1
         listLayout.addLayout(self.clientsLayout)
 
         # Layout to add additional API search clients
         apiPlusLayout = QHBoxLayout()
-        addGoogleAPI = PlusIcon('Google')
+        apiPlusLayout.setAlignment(Qt.AlignRight)
+        addGoogleAPI = ImageButton('add-google-api', 49, 32)
+        addGoogleAPI.setToolTip('Add Google Custom Search Engine API Instance')
         apiPlusLayout.addWidget(addGoogleAPI)
-        addBingAPI = PlusIcon('Bing')
+        addBingAPI = ImageButton('add-bing-api', 49, 32)
+        addBingAPI.setToolTip('Add Bing Image Search API Instance')
         apiPlusLayout.addWidget(addBingAPI)
-        apiPlusLayout.addStretch(1)
+        addGoogleScraper = ImageButton('add-google-scraper', 49, 32)
+        addGoogleScraper.setToolTip('Add Google Image Scraper Instance')
+        apiPlusLayout.addWidget(addGoogleScraper)
+        # apiPlusLayout.addStretch(1)
         listLayout.addLayout(apiPlusLayout)
 
         listLayout.addStretch(1)
@@ -60,17 +73,22 @@ class DatasetBuilderApp(QMainWindow):
         centralWidget.layout().setContentsMargins(0, 0, 0, 0)
 
         # Toolbar
-        toolbar = ToolBar()
-        self.addToolBar(Qt.TopToolBarArea, toolbar)
+        self.toolbar = ToolBar()
+        self.addToolBar(Qt.TopToolBarArea, self.toolbar)
 
         # Dock widgets
 
         # Connect signals and slots
-        addGoogleAPI.clickableIcon().clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
-        addBingAPI.clickableIcon().clicked.connect(lambda state, x=SupportedSearchClients.BING: self.addSearchClient(x))
-        toolbar.setSaveDirButton().clicked.connect(self.setDefaultSaveDirectory)
-        # toolbar.searchAllButton().clicked.connect(self.scrapeAllImages)
-        toolbar.deleteAllButton().clicked.connect(self.removeAllSearchClients)
+        #addGoogleScraper.clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
+        self.searchCountUpdated.connect(self.updateToolbar)
+        self.clientCountUpdated.connect(self.updateToolbar)
+        addGoogleAPI.clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE: self.addSearchClient(x))
+        addBingAPI.clicked.connect(lambda state, x=SupportedSearchClients.BING: self.addSearchClient(x))
+        self.toolbar.setSaveDirButton().clicked.connect(self.setDefaultSaveDirectory)
+        # self.toolbar.searchAllButton().clicked.connect(self.scrapeAllImages)
+        self.toolbar.deleteAllButton().clicked.connect(self.removeAllSearchClients)
+        firstSearchClient.delete.connect(self.updateClientCount)
+        firstSearchClient.searchCountUpdated[int, str].connect(self.updateSearchCount)
 
         # Window settings
         self.setWindowTitle(self.title)
@@ -79,6 +97,12 @@ class DatasetBuilderApp(QMainWindow):
         self.center()
         self.show()
 
+    @pyqtSlot()
+    def updateToolbar(self):
+        self.toolbar.searchAllButton().setEnabled(self.searchCount > 0)
+        self.toolbar.deleteAllButton().setEnabled(self.clientCount > 0)
+
+    @pyqtSlot()
     def setDefaultSaveDirectory(self):
         selected = QFileDialog.getExistingDirectory(self, 'Save images to the directory',
                                                     self.defaultSaveDir, QFileDialog.ShowDirsOnly)
@@ -88,6 +112,7 @@ class DatasetBuilderApp(QMainWindow):
                 s.setDefaultSaveDirectory(self.defaultSaveDir)
                 # print('Changed default save directory')
 
+    @pyqtSlot()
     def removeAllSearchClients(self):
         mboxtitle = 'Delete All'
         mboxmsg = 'Are you sure you want to delete all search API instances and their corresponding queries?'
@@ -97,8 +122,30 @@ class DatasetBuilderApp(QMainWindow):
             for s in self.clientsLayout.parentWidget().findChildren(SearchClient):
                 s.destroy()
 
+    @pyqtSlot(SupportedSearchClients)
     def addSearchClient(self, client: SupportedSearchClients):
-        self.clientsLayout.addWidget(SearchClient(client, self.defaultSaveDir))
+        self.clientCount += 1
+        self.searchCount += 1
+        client = SearchClient(client, self.defaultSaveDir)
+        self.clientsLayout.addWidget(client)
+        client.delete.connect(self.updateClientCount)
+        client.searchCountUpdated[int, str].connect(self.updateSearchCount)
+        self.clientCountUpdated.emit()
+
+    @pyqtSlot()
+    def updateClientCount(self):
+        self.clientCount -= 1
+        # print(f'Client count: {self.clientCount}')
+        self.clientCountUpdated.emit()
+
+    @pyqtSlot(int, str)
+    def updateSearchCount(self, count: int, action: str):
+        if action == 'added':
+            self.searchCount += count
+        elif action == 'removed':
+            self.searchCount -= count
+        # print(f'Search count: {self.searchCount} ({action} {count})')
+        self.searchCountUpdated.emit()
 
     def center(self):
         qtRectangle = self.frameGeometry()

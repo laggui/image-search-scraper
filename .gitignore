@@ -4,5 +4,5 @@ __pycache__/
 # development
 .vscode/
 
-# don't accidentally push your API keys to the public
-dataset_conf.json
+# search clients test file
+test.py

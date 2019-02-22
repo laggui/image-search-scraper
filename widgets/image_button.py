@@ -7,10 +7,10 @@ class ImageButton(QPushButton):
     """
     Base class for a clickable image button
     """
-    def __init__(self, icon: str, size: int = 18, parent: QWidget = None):
+    def __init__(self, icon: str, width: int = 18, height: int = 18, parent: QWidget = None):
         super().__init__(parent)
         self.setIcon(newIcon(icon))
-        self.setIconSize(QSize(size, size))
+        self.setIconSize(QSize(width, height))
         self.initStyleSheet()
 
     def initStyleSheet(self):

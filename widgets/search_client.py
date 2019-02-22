@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QGroupBox, QHBoxLayout, QLabel, QSpinBox, QVBoxLayout, QWidget
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
 from enum import Enum
 
 from widgets import DeleteButton, PlusIcon, SearchBox, TextBox
@@ -12,13 +12,15 @@ class SearchClient(QGroupBox):
     """
     Search API Client groupbox widget layout
     """
+    delete = pyqtSignal()
+    searchCountUpdated = pyqtSignal(int, str)
     _titles = {SupportedSearchClients.GOOGLE: 'Google Custom Search JSON API',
               SupportedSearchClients.BING: 'Bing Image Search API v7'}
     def __init__(self, client: SupportedSearchClients, saveDirectory: str, parent: QWidget = None):
         super().__init__(self._titles[client], parent)
         self.client = client
         self.searchCount = 1
-        self.maxResults = 500
+        self.maxResults = 25000
         self.defaultSaveDirectory = saveDirectory
 
         self.setContentsMargins(11, 3, 3, 11)
@@ -76,6 +78,7 @@ class SearchClient(QGroupBox):
         searchBox = SearchBox(self.maxResults, f'Query #{self.searchCount}', self.defaultSaveDirectory)
         self.queriesLayout.addWidget(searchBox)
         searchBox.delete.connect(self.updateSearchBoxTitles)
+        self.searchCountUpdated.emit(1, 'added')
 
     def _clearLayout(self, layout):
         if layout is not None:
@@ -95,6 +98,7 @@ class SearchClient(QGroupBox):
             if not s.deleteInProgress:
                 s.setProperties(f'Query #{self.searchCount - i}')
                 i -= 1
+        self.searchCountUpdated.emit(1, 'removed') # removed one search box
 
     @pyqtSlot()
     def destroy(self):
@@ -102,3 +106,5 @@ class SearchClient(QGroupBox):
         self._clearLayout(self.mainLayout)
         # Delete self
         self.deleteLater()
+        self.delete.emit()
+        self.searchCountUpdated.emit(self.searchCount, 'removed')

@@ -10,7 +10,7 @@ class PlusIcon(QWidget):
         super().__init__(parent)
         # Layout
         hLayout = QHBoxLayout()
-        self.plusIcon = ImageButton('plus', size)
+        self.plusIcon = ImageButton('plus', size, size)
         hLayout.addWidget(self.plusIcon)
         hLayout.addWidget(QLabel(text))
         hLayout.addStretch(1)
