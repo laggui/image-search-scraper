@@ -20,3 +20,12 @@ from .search_client import SearchClient
 
 # ToolBar
 from .toolbar import ToolBar
+
+# Download progress bar
+from .download_progress import DownloadProgress
+
+# Dock
+from .progress_dock import ProgressDock
+
+# Search process
+from .search_task import SearchTask
