@@ -8,9 +8,10 @@ class SearchBox(QGroupBox):
     Groupbox widget layout for a search API client's queries
     """
     delete = pyqtSignal()
+    search = pyqtSignal(str, str, int)
     def __init__(self, maxResults: int, title: str, saveDirectory: str, parent: QWidget = None):
         super().__init__(title, parent)
-        self.setContentsMargins(11, 3, 3, 11)
+        self.setContentsMargins(11, 3, 0, 11)
         self.deleteInProgress = False
 
         # Main vertical layout
@@ -26,14 +27,21 @@ class SearchBox(QGroupBox):
         deleteLayout.addWidget(self.deleteButton)
         self.mainLayout.addLayout(deleteLayout)
 
+        # Search box layout
+        searchBoxLayout = QVBoxLayout()
+        searchBoxLayout.setAlignment(Qt.AlignTop)
+        searchBoxLayout.setContentsMargins(0, 0, 11, 0)
+        self.mainLayout.addLayout(searchBoxLayout)
+
         # Search query layout
         searchLayout = QHBoxLayout()
         self.searchTextBox = TextBox('Enter your search query here...')
         self.searchButton = SearchButton()
+        self.searchButton.setEnabled(False)
         searchLayout.addWidget(self.searchTextBox)
         searchLayout.addWidget(self.searchButton)
         searchLayout.addStretch(1)
-        self.mainLayout.addLayout(searchLayout)
+        searchBoxLayout.addLayout(searchLayout)
 
         # Number of images
         numImagesLayout = QHBoxLayout()
@@ -43,18 +51,21 @@ class SearchBox(QGroupBox):
         numImagesLayout.addWidget(QLabel('Number of images'))
         numImagesLayout.addWidget(self.numImages)
         numImagesLayout.addStretch(1)
-        self.mainLayout.addLayout(numImagesLayout)
+        searchBoxLayout.addLayout(numImagesLayout)
 
         # Save directory
         self.saveDir = DirectorySelector(saveDirectory)
-        self.mainLayout.addWidget(self.saveDir)
+        searchBoxLayout.addWidget(self.saveDir)
 
-        self.mainLayout.addStretch(1)
+        searchBoxLayout.addStretch(1)
         self.setLayout(self.mainLayout)
 
         # Connect signals and slots
         self.deleteButton.clicked.connect(self.destroy)
-    
+        self.searchButton.clicked.connect(self.sendSearchRequest)
+        self.searchButton.clicked.connect(self.destroy) # delete widget on search
+        self.searchTextBox.textChanged.connect(self.updateSearchEnabledState)
+
     def saveDirectory(self):
         return self.saveDir.selectedDirectory()
 
@@ -82,6 +93,14 @@ class SearchBox(QGroupBox):
                     widget.deleteLater()
                 else:
                     self._clearLayout(item.layout())
+
+    @pyqtSlot()
+    def sendSearchRequest(self):
+        self.search.emit(self.saveDirectory(), self.searchQuery(), self.numberOfImages())
+
+    @pyqtSlot()
+    def updateSearchEnabledState(self):
+        self.searchButton.setEnabled(self.searchTextBox.toPlainText() != '')
 
     @pyqtSlot()
     def destroy(self):
