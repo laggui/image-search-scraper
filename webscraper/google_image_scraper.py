@@ -94,12 +94,12 @@ class GoogleImageScraper():
 
         return source
 
-    def download(self, save_dir: str, query: str, num_images: int, start_idx: int = 0):
+    def get_links(self, query: str, num_images: int, start_idx: int = 0):
         """
-        Download specified number of images from query into destination save directory
+        Retrieve specified number of images links from query into destination save directory
         """
         # TO-DO: argument for image size to narrow search results?
-        print("Evaluating...")
+        print(f"Evaluating for {num_images} images...")
 
         url = self.build_search_url(query)
 
@@ -108,9 +108,9 @@ class GoogleImageScraper():
         else:
             raw_html = self.download_extended_page(url, __driverpath__)
 
-        items, errorCount = self._get_all_items(query, raw_html, save_dir, num_images, start_idx)
+        items = self._get_all_items(query, raw_html, num_images, start_idx)
 
-        print("\nErrors: " + str(errorCount) + "\n")
+        return items
 
     def format_object(self,object):
         """
@@ -157,13 +157,12 @@ class GoogleImageScraper():
                 final_object = ""
             return final_object, end_object
 
-    def _get_all_items(self, query: str, page: str, save_dir: str, num_images: int, start_idx: int = 0):
+    def _get_all_items(self, query: str, page: str, num_images: int, start_idx: int = 0):
         """
         Retrieve specified number of links from the web page
         """
         items = []
         offset = start_idx + 1
-        errorCount = 0
         i = 0
         count = 1
         while count <= num_images:
@@ -181,18 +180,9 @@ class GoogleImageScraper():
 
                 #download the images
                 filename = self.generate_filename_from_query(query, i, obj['image_format'])
-                return_image_name, download_status = download_image(obj['image_link'], save_dir, filename)
-                if download_status == "success":
-                    count += 1
-                    obj['image_filename'] = return_image_name
-                    items.append(obj)  # Append all the links in the list named 'Links'
-                else:
-                    errorCount += 1
+                count += 1
+                items.append({'url': obj['image_link'], 'file': filename})
 
                 page = page[end_content:]
             i += 1
-        if count < num_images:
-            print("\n\nUnfortunately all " + str(
-                num_images) + " could not be downloaded because some images were not downloadable. " + str(
-                count-1) + " is all we got for this search filter!")
-        return items, errorCount
+        return items

@@ -15,6 +15,9 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
         super().__init__("https://www.googleapis.com/customsearch/v1", 100, 10, 1,
                          {}, {'key':api_key, 'cx':cse_id, 'searchType':'image'})
 
+    def get_links(self, query: str, num_images: int, start_idx: int = 0):
+        return self._get_all_items(query, num_images, start_idx)
+
     def _check_value(self, **kwargs):
         start = kwargs.pop('start', 1)
         num = kwargs.pop('num', None)
@@ -30,16 +33,17 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
                               " be between {} and {}, inclusive.".format(
                                   self.min_index, self.max_results_per_q)))
 
-    def _parse_response(self):
+    def _parse_response(self, query):
         items = []
-        for item in self.response['items']:
+        for i,item in enumerate(self.response['items']):
             items.append({
                 'type': item['mime'],
                 'width': item['image']['width'],
                 'height': item['image']['height'],
                 'size': item['image']['byteSize'],
                 'url': item['link'],
-                'hostPage': item['image']['contextLink']
+                'hostPage': item['image']['contextLink'],
+                'file': self.generate_filename_from_query(query, i, None if not item['mime'] else item['mime'])
             })
         return items
 
@@ -58,8 +62,9 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
             n_queries += 1
         return (n_queries, num_img_list)
 
-    def download(save_dir: str, query: str, num_images: int, start_idx: int = 0):
-        # check for invalid result requests
+    def _get_all_items(self, query: str, num_images: int, start_idx: int = 0):
+        items = []
+        # Check for invalid result requests
         if num_images + start_idx > self.max_results + 1:
             if start_idx == 1:
                 msg = ("(Warning) {0} results requested. Google CSE only returns the first {1} results."
@@ -76,16 +81,12 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
                 start_idx -= diff
                 if num_images > self.max_results: num_images = self.max_results
 
-        fquery = re.sub(r'\W+', '-', query) # remove special characters from query
+        # Calculate the number of queries necessary to get num_images
+        n_queries, num_img_list = self._split_request_into_n_queries(num_images, self.max_results_per_query)
 
-        # calculate the number of queries necessary to get num_images
-        n_queries, num_img_list = self._split_request_into_n_queries(num_images, MAX_RESULTS_PER_Q)
-
-        # split queries in result batches
+        # Split queries in result batches
         for q in range(n_queries):
-            idx_offs = q * MAX_RESULTS_PER_Q
+            idx_offs = q * self.max_results_per_query
             search = self.search(query, start=start_idx + idx_offs, num=num_img_list[q])
-
-            for i, item in enumerate(search):
-                filename = self.generate_filename_from_fquery(fquery, item, i + idx_offs)
-                download_image(item['url'], f'{save_dir}/{fquery}', filename)
+            items.append(search)
+        return items

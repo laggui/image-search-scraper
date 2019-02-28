@@ -24,7 +24,7 @@ class SearchAPIClient():
         pass
 
     @abstractmethod
-    def _parse_response(self):
+    def _parse_response(self, query):
         """
         Extract items (and their specified parameters) from the request's response and return them
         in the form of a list of items (each item being a dict).
@@ -43,13 +43,12 @@ class SearchAPIClient():
 
         self.params.update(q=query, **kwargs)
         self.response = requests.get(self.endpoint, headers=self.headers, params=self.params).json()
-        return self._parse_response()
+        return self._parse_response(query)
 
-    def generate_filename_from_fquery(fquery: str, search_item: str, idx: int):
+    def generate_filename_from_query(self, query: str, idx: int, ext: str = None):
         """
         Generate a filename from the specified formatted query with the file extension and idx
         """
-        ext = search_item['type'].split('/')[-1]
         if not ext:
             ext = 'jpeg'
-        return f'{fquery}_{str(idx).zfill(5)}.{ext}'
+        return f'{query}_{str(idx).zfill(5)}.{ext}'
