@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QToolBar, QWidget, QAction
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 
 from widgets.utils import newIcon
 
@@ -7,6 +7,9 @@ class ToolBar(QToolBar):
     """
     ToolBar widget with preset actions defined
     """
+    deleteAll = pyqtSignal()
+    searchAll = pyqtSignal()
+    setDefaultDirectory = pyqtSignal()
     def __init__(self, title: str = 'Global Actions', parent: QWidget = None):
         super().__init__('delete', parent)
         self.setStyleSheet('QToolButton:hover{background: rgba(0, 0, 0, 10%);}')
@@ -18,21 +21,20 @@ class ToolBar(QToolBar):
         # Search all queries & download images
         searchAllAction = QAction(newIcon('search-download'), 'Search && Download All', self)
         self.addAction(searchAllAction)
-        self.searchAll = self.widgetForAction(searchAllAction)
+        self.searchAllButton = self.widgetForAction(searchAllAction)
 
         # Delete all APIs and their corresponding queries
         deleteAllAction = QAction(newIcon('delete'), 'Delete All APIs && Queries', self)
         self.addAction(deleteAllAction)
-        self.deleteAll = self.widgetForAction(deleteAllAction)
+        self.deleteAllButton = self.widgetForAction(deleteAllAction)
 
-    def setSaveDirButton(self):
-        """Returns the toolbar button in order to access its clicked signal externally"""
-        return self.setSaveDir
+        # Connect signals
+        self.setSaveDir.clicked.connect(self.setDefaultDirectory)
+        self.searchAllButton.clicked.connect(self.searchAll)
+        self.deleteAllButton.clicked.connect(self.deleteAll)
 
-    def searchAllButton(self):
-        """Returns the toolbar button in order to access its clicked signal externally"""
-        return self.searchAll
+    def setDeleteAllEnabled(self, state):
+        self.deleteAllButton.setEnabled(state)
 
-    def deleteAllButton(self):
-        """Returns the toolbar button in order to access its clicked signal externally"""
-        return self.deleteAll
+    def setSearchAllEnabled(self, state):
+        self.searchAllButton.setEnabled(state)
