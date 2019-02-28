@@ -1,5 +1,8 @@
+# Supported clients
+from .supported_search_clients import SupportedSearchClients
+
 # Utility function
-from .download_images import download_image
+from .download_images import download_image, download_all_images
 
 # Search API Clients
 from .search_api_client import SearchAPIClient
