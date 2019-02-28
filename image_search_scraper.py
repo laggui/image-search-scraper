@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QFrame, QAction, QFileDial
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 
 from widgets import ImageButton, PlusIcon, ProgressDock, SearchClient, SearchTask, ToolBar
-from widgets.utils import newIcon
+from widgets.utils import newIcon, reduceString
 
 from webscraper import SupportedSearchClients
 
@@ -109,7 +109,7 @@ class ImageSearchScraperApp(QMainWindow):
         Start Google Image Scraper search task
         """
         directory = directory + '/Google_API'
-        self.downloadProgressDock.addProgressItem(directory + '/' + query)
+        self.downloadProgressDock.addProgressItem(reduceString(directory + '/' + query))
         idx = self.downloadProgressDock.getItemCount() - 1
         self.thread = QThread(self)
         self.searchTask = SearchTask(idx, SupportedSearchClients.GOOGLE, directory, query, numImages)
