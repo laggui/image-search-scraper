@@ -24,7 +24,7 @@ class SearchAPIClient():
         pass
 
     @abstractmethod
-    def _parse_response(self, query):
+    def _parse_response(self):
         """
         Extract items (and their specified parameters) from the request's response and return them
         in the form of a list of items (each item being a dict).
@@ -43,7 +43,7 @@ class SearchAPIClient():
 
         self.params.update(q=query, **kwargs)
         self.response = requests.get(self.endpoint, headers=self.headers, params=self.params).json()
-        return self._parse_response(query)
+        return self._parse_response()
 
     def generate_filename_from_query(self, query: str, idx: int, ext: str = None):
         """

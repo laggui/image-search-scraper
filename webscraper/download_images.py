@@ -21,11 +21,11 @@ def download_image(dest_dir: str, image_dict: dict):
         r.raise_for_status()
     except ConnectionError as e:
         # ignore failed connection
-        print("(Warning) ConnectionError: \"{0}\".\nFailed to retrieve image from: {1}".format(e, url))
+        print("[WARNING] ConnectionError: \"{0}\".\nFailed to retrieve image from: {1}".format(e, url))
         return "", "ConnectionError"
     except HTTPError:
         # ignore failed connection
-        print("(Warning) HTTPError {0}. Failed to retrieve image from: {1}".format(r.status_code, url))
+        print("[WARNING] HTTPError {0}. Failed to retrieve image from: {1}".format(r.status_code, url))
         return "", "HTTPError"
     
     if not os.path.exists(dest_dir):

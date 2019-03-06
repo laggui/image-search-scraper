@@ -9,10 +9,10 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
     """
     def __init__(self, cse_id: str, api_key: str):
         if not api_key:
-            raise ValueError("Expected an API Key")
+            raise ValueError('Expected an API Key')
         if not cse_id:
-            raise ValueError("Expected a Custom Search Engine ID")
-        super().__init__("https://www.googleapis.com/customsearch/v1", 100, 10, 1,
+            raise ValueError('Expected a Custom Search Engine ID')
+        super().__init__('https://www.googleapis.com/customsearch/v1', 100, 10, 1,
                          {}, {'key':api_key, 'cx':cse_id, 'searchType':'image'})
 
     def get_links(self, query: str, num_images: int, start_idx: int = 0):
@@ -22,18 +22,16 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
         start = kwargs.pop('start', 1)
         num = kwargs.pop('num', None)
         if kwargs:
-            raise TypeError("%r are invalid keyword arguments." % (kwargs.keys()))
+            raise TypeError(f'{kwargs.keys()} are invalid keyword arguments.')
         if num is None:
-            raise ValueError("Missing number of results to return.")
+            raise ValueError('Missing number of results to return.')
         if start < self.min_index:
-            raise ValueError("Invalid start index value. Valid values start at {}.".format(
-                self.min_index))
+            raise ValueError(f'Invalid start index value. Valid values start at {self.min_index}.')
         if num > self.max_results_per_q or num < self.min_index:
-            raise ValueError(("Invalid num value. Number of search results to return must"
-                              " be between {} and {}, inclusive.".format(
-                                  self.min_index, self.max_results_per_q)))
+            raise ValueError(('Invalid num value. Number of search results to return must '
+                              f'be between {self.min_index} and {self.max_results_per_q}, inclusively.'))
 
-    def _parse_response(self, query):
+    def _parse_response(self):
         items = []
         for item in self.response['items']:
             items.append({
@@ -66,16 +64,16 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
         # Check for invalid result requests
         if num_images + start_idx > self.max_results + 1:
             if start_idx == 1:
-                msg = ("(Warning) {0} results requested. Google CSE only returns the first {1} results."
-                    "Truncated request to {1} results.")
+                msg = ('[WARNING] {0} results requested. Google CSE only returns the first {1} results. '
+                       'Truncated request to {1} results.')
                 print(msg.format(num_images, self.max_results))
                 num_images = self.max_results
             else:
                 diff = (num_images + start_idx - 1) - self.max_results
                 if start_idx - diff < 1:
                     diff = start_idx - 1
-                msg = ("(Warning) Results [{0}-{1}] requested. Google CSE only returns the first {2}"
-                    " results. Truncated request to results [{3}-{2}].")
+                msg = ('[WARNING] Results [{0}-{1}] requested. Google CSE only returns the first {2} '
+                       'results. Truncated request to results [{3}-{2}].')
                 print(msg.format(start_idx, num_images + start_idx - 1, self.max_results, start_idx - diff))
                 start_idx -= diff
                 if num_images > self.max_results: num_images = self.max_results

@@ -36,16 +36,16 @@ class GoogleImageScraper():
             r.raise_for_status()
         except ConnectionError as e:
             # ignore failed connection
-            print("(Warning) ConnectionError: \"{0}\".\nFailed to retrieve image from: {1}".format(e, url))
+            print(f'[WARNING] ConnectionError: "{e}".\nFailed to retrieve image from: {url}')
             return
         except HTTPError:
             # ignore failed connection
-            print("(Warning) HTTPError {0}. Failed to retrieve image from: {1}".format(r.status_code, url))
+            print(f'[WARNING] HTTPError {r.status_code}. Failed to retrieve image from: {url}')
             return
         
         return str(r.content)
 
-    def download_extended_page(self, url, chromedriver):
+    def download_extended_page(self, url: str, chromedriver: str):
         """
         Download page for more than 100 images
         """
@@ -58,25 +58,25 @@ class GoogleImageScraper():
         try:
             browser = webdriver.Chrome(chromedriver, options=options)
         except Exception as e:
-            print("Looks like we cannot locate the path the 'chromedriver' (use the '--chromedriver' "
-                  "argument to specify the path to the executable.) or google chrome browser is not "
-                  "installed on your machine (exception: %s)" % e)
+            print('Looks like we cannot locate the path the chromedriver (use the --chromedriver '
+                  'argument to specify the path to the executable.) or google chrome browser is not '
+                  'installed on your machine (exception: %s)' % e)
             sys.exit()
         browser.set_window_size(1024, 768)
 
         # Open the link
         browser.get(url)
         time.sleep(1)
-        print("Getting you a lot of images. This may take a few moments...")
+        print('Getting you a lot of images. This may take a few moments...')
 
-        element = browser.find_element_by_tag_name("body")
+        element = browser.find_element_by_tag_name('body')
         # Scroll down
         for i in range(30):
             element.send_keys(Keys.PAGE_DOWN)
             time.sleep(0.3)
 
         try:
-            browser.find_element_by_id("smb").click()
+            browser.find_element_by_id('smb').click()
             for i in range(50):
                 element.send_keys(Keys.PAGE_DOWN)
                 time.sleep(0.3)  # bot id protection
@@ -85,7 +85,7 @@ class GoogleImageScraper():
                 element.send_keys(Keys.PAGE_DOWN)
                 time.sleep(0.3)  # bot id protection
 
-        print("Reached end of Page.")
+        print('Reached end of Page.')
         time.sleep(0.5)
 
         source = browser.page_source #page source
@@ -99,7 +99,7 @@ class GoogleImageScraper():
         Retrieve specified number of images links from query into destination save directory
         """
         # TO-DO: argument for image size to narrow search results?
-        print(f"Evaluating for {num_images} images...")
+        print(f'Evaluating for {num_images} images...')
 
         url = self.build_search_url(query)
 
@@ -112,7 +112,7 @@ class GoogleImageScraper():
 
         return items
 
-    def format_object(self,object):
+    def format_object(self, object: dict):
         """
         Format the object in readable format
         """
@@ -142,7 +142,7 @@ class GoogleImageScraper():
         start_line = s.find('rg_meta notranslate')
         if start_line == -1:  # If no links are found then give an error!
             end_quote = 0
-            link = "no_links"
+            link = 'no_links'
             return link, end_quote
         else:
             start_line = s.find('class="rg_meta notranslate">')
@@ -167,9 +167,9 @@ class GoogleImageScraper():
         count = 0
         while count < num_images:
             obj, end_content = self._get_next_item(page)
-            if obj == "no_links":
+            if obj == 'no_links':
                 break
-            elif obj == "":
+            elif obj == '':
                 page = page[end_content:]
             elif offset and count < offset:
                     count += 1
