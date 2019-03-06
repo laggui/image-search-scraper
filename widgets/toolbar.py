@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QToolBar, QWidget, QAction
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
 
 from widgets.utils import newIcon
 
@@ -7,6 +7,7 @@ class ToolBar(QToolBar):
     """
     ToolBar widget with preset actions defined
     """
+    clearCompleted = pyqtSignal()
     deleteAll = pyqtSignal()
     searchAll = pyqtSignal()
     setDefaultDirectory = pyqtSignal()
@@ -28,10 +29,20 @@ class ToolBar(QToolBar):
         self.addAction(deleteAllAction)
         self.deleteAllButton = self.widgetForAction(deleteAllAction)
 
+        # Clear progress dock
+        clearProgresDockAction = QAction(newIcon('clear'), 'Clear All Completed Queries From Progress Dock', self)
+        self.addAction(clearProgresDockAction)
+        self.clearProgressDockButton = self.widgetForAction(clearProgresDockAction)
+        self.clearProgressDockButton.setEnabled(False)
+
         # Connect signals
         self.setSaveDir.clicked.connect(self.setDefaultDirectory)
         self.searchAllButton.clicked.connect(self.searchAll)
         self.deleteAllButton.clicked.connect(self.deleteAll)
+        self.clearProgressDockButton.clicked.connect(self.clearCompleted)
+
+    def setClearProgressDockEnabled(self, state):
+        self.clearProgressDockButton.setEnabled(state)
 
     def setDeleteAllEnabled(self, state):
         self.deleteAllButton.setEnabled(state)
