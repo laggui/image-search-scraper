@@ -164,14 +164,14 @@ class GoogleImageScraper():
         items = []
         offset = start_idx - 1
         i = 0
-        count = 1
-        while count <= num_images:
+        count = 0
+        while count < num_images:
             obj, end_content = self._get_next_item(page)
             if obj == "no_links":
                 break
             elif obj == "":
                 page = page[end_content:]
-            elif offset and count < int(offset):
+            elif offset and count < offset:
                     count += 1
                     page = page[end_content:]
             else:
@@ -184,5 +184,6 @@ class GoogleImageScraper():
                 items.append({'url': obj['image_link'], 'file': filename})
 
                 page = page[end_content:]
-            i += 1
+                i += 1
+        print(i)
         return items
