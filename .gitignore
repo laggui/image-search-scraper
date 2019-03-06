@@ -6,3 +6,6 @@ __pycache__/
 
 # search clients test file
 test.py
+
+# resources
+resources.py
