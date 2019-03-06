@@ -1,7 +1,15 @@
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QProgressBar, QWidget, QVBoxLayout
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSignal
+
+from widgets import DeleteButton
 
 class DownloadProgress(QWidget):
+    """
+    Progress tracker widget
+    """
+    _min = 0
+    _max = 100
+    completed = pyqtSignal()
     def __init__(self, text: str, parent: QWidget = None):
         super().__init__(parent)
         vLayout = QVBoxLayout()
@@ -13,10 +21,9 @@ class DownloadProgress(QWidget):
         self.progressBar = QProgressBar()
         self.progressBar.setFixedHeight(20)
         self.progressBar.setAlignment(Qt.AlignCenter)
-        self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(100)
-        self.progressBar.setValue(0)
-        # print(f'Progress value: {self.progressBar.value()}')
+        self.progressBar.setMinimum(self._min)
+        self.progressBar.setMaximum(self._max)
+        self.progressBar.setValue(self._min)
 
         vLayout.addLayout(textLayout)
         vLayout.addWidget(self.progressBar)
@@ -24,6 +31,9 @@ class DownloadProgress(QWidget):
 
     def setValue(self, value: int):
         self.progressBar.setValue(value)
+        if value == self._max:
+            self.completed.emit()
+            print('Completed')
 
     def value(self):
         return self.progressBar.value()
