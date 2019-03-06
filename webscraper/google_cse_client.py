@@ -35,15 +35,14 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
 
     def _parse_response(self, query):
         items = []
-        for i,item in enumerate(self.response['items']):
+        for item in self.response['items']:
             items.append({
-                'type': item['mime'],
+                'type': item['mime'].split('/')[-1],
                 'width': item['image']['width'],
                 'height': item['image']['height'],
                 'size': item['image']['byteSize'],
                 'url': item['link'],
-                'hostPage': item['image']['contextLink'],
-                'file': self.generate_filename_from_query(query, i, None if not item['mime'] else item['mime'])
+                'hostPage': item['image']['contextLink']
             })
         return items
 
@@ -53,16 +52,16 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
         results per query, along with a list containing the number of images for each query
         """
         # retrieve the number of queries necessary to get num_images
-        n_queries = num_images // self.max_results_per_query
-        n_rest = num_images % self.max_results_per_query
+        n_queries = num_images // self.max_results_per_q
+        n_rest = num_images % self.max_results_per_q
 
-        num_img_list = [self.max_results_per_query] * n_queries
+        num_img_list = [self.max_results_per_q] * n_queries
         if n_rest:
             num_img_list.append(n_rest)
             n_queries += 1
         return (n_queries, num_img_list)
 
-    def _get_all_items(self, query: str, num_images: int, start_idx: int = 0):
+    def _get_all_items(self, query: str, num_images: int, start_idx: int = 1):
         items = []
         # Check for invalid result requests
         if num_images + start_idx > self.max_results + 1:
@@ -82,11 +81,12 @@ class GoogleCustomSearchEngineClient(SearchAPIClient):
                 if num_images > self.max_results: num_images = self.max_results
 
         # Calculate the number of queries necessary to get num_images
-        n_queries, num_img_list = self._split_request_into_n_queries(num_images, self.max_results_per_query)
+        n_queries, num_img_list = self._split_request_into_n_queries(num_images)
 
         # Split queries in result batches
         for q in range(n_queries):
-            idx_offs = q * self.max_results_per_query
+            idx_offs = q * self.max_results_per_q
             search = self.search(query, start=start_idx + idx_offs, num=num_img_list[q])
-            items.append(search)
+            search = self.add_filename_to_search_dict(search, query, offset=idx_offs)
+            items.extend(search)
         return items

@@ -52,3 +52,10 @@ class SearchAPIClient():
         if not ext:
             ext = 'jpeg'
         return f'{query}_{str(idx).zfill(5)}.{ext}'
+
+    def add_filename_to_search_dict(self, search, query, offset = 0):
+        """
+        Add a filename to each link returned from the search results, which are in dict format.
+        """
+        [s.update(file=self.generate_filename_from_query(query, i + offset, s['type'])) for i,s in enumerate(search)]
+        return search

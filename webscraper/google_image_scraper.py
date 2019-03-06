@@ -94,7 +94,7 @@ class GoogleImageScraper():
 
         return source
 
-    def get_links(self, query: str, num_images: int, start_idx: int = 0):
+    def get_links(self, query: str, num_images: int, start_idx: int = 1):
         """
         Retrieve specified number of images links from query into destination save directory
         """
@@ -157,12 +157,12 @@ class GoogleImageScraper():
                 final_object = ""
             return final_object, end_object
 
-    def _get_all_items(self, query: str, page: str, num_images: int, start_idx: int = 0):
+    def _get_all_items(self, query: str, page: str, num_images: int, start_idx: int = 1):
         """
         Retrieve specified number of links from the web page
         """
         items = []
-        offset = start_idx + 1
+        offset = start_idx - 1
         i = 0
         count = 1
         while count <= num_images:

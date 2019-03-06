@@ -55,6 +55,4 @@ def download_all_images(query: str, download_dir: str, links: list, query_id: in
             _, status = future.result()
             if progress_object:
                 progress_object.updateProgress.emit(query_id, (completed / total) * 100)
-    # In case the signal was missed (bug?)
-    if progress_object:
-        progress_object.updateProgress.emit(query_id, 100)
+    print('Download done')

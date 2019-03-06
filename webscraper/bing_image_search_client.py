@@ -45,10 +45,11 @@ class BingImageSearchClient(SearchAPIClient):
             })
         return (items, self.response['nextOffset'], self.response['totalEstimatedMatches'])
 
-    def _get_all_items(self, query: str, count: int, offset: int = 0):
+    def _get_all_items(self, query: str, count: int, start_idx: int = 1):
         """
         Get images for the specified query through Bing's image search API
         """
+        offset = start_idx - 1
         items = []
         # Get the number of results to request for the first query
         if num_images > self.max_results_per_q:
