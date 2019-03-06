@@ -66,14 +66,14 @@ class SearchBox(QGroupBox):
         self.searchButton.clicked.connect(self.destroy) # delete widget on search
         self.searchTextBox.textChanged.connect(self.updateSearchEnabledState)
 
-    def saveDirectory(self):
-        return self.saveDir.selectedDirectory()
-
     def numberOfImages(self):
         return self.numImages.value()
 
     def searchQuery(self):
         return self.searchTextBox.toPlainText()
+
+    def saveDirectory(self):
+        return self.saveDir.selectedDirectory()
 
     def setSaveDirectory(self, directory: str):
         self.saveDir.setSelectedDirectory(directory)

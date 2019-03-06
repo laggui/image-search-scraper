@@ -7,7 +7,7 @@ class SearchTask(QObject):
     updateProgress = pyqtSignal(int, float)
     finished = pyqtSignal()
     def __init__(self, idx: int, client: SupportedSearchClients, directory: str, query: str, numImages: int,
-                 startIdx: int = 0, apiKey: str = None, cseID: str = None, parent: QObject = None):
+                 startIdx: int = 1, apiKey: str = None, cseID: str = None, parent: QObject = None):
         super().__init__(parent)
         self.idx = idx
         self.client = client

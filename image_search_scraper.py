@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QFrame, QAction, QFileDialog
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 
-from widgets import ImageButton, PlusIcon, ProgressDock, SearchClient, SearchTask, ToolBar
+from widgets import ImageButton, PlusIcon, ProgressDock, SearchBox, SearchClient, SearchTask, ToolBar
 from widgets.utils import newIcon, reduceString
 
 from webscraper import SupportedSearchClients
@@ -30,6 +30,9 @@ class ImageSearchScraperApp(QMainWindow):
         self.initUI()
 
     def initUI(self):
+        """
+        Initialize the user interface
+        """
         # Main layout
         centralWidget = QWidget(self)
         self.setCentralWidget(centralWidget)
@@ -90,9 +93,11 @@ class ImageSearchScraperApp(QMainWindow):
         addGoogleAPI.clicked.connect(lambda state, x=SupportedSearchClients.GOOGLE_API: self.addSearchClient(x))
         addBingAPI.clicked.connect(lambda state, x=SupportedSearchClients.BING_API: self.addSearchClient(x))
         self.toolbar.setDefaultDirectory.connect(self.setDefaultSaveDirectory)
-        # self.toolbar.searchAll.connect(self.searchAllQueries)
+        self.toolbar.searchAll.connect(self.searchAllQueries)
         self.toolbar.deleteAll.connect(self.removeAllSearchClients)
-        firstSearchClient.delete.connect(self.updateClientCount)
+        self.toolbar.clearCompleted.connect(self.downloadProgressDock.removeCompleted)
+        self.downloadProgressDock.completed[bool].connect(lambda state: self.toolbar.setClearProgressDockEnabled(state))
+        firstSearchClient.delete.connect(self.decrementClientCount)
         firstSearchClient.search[str, str, str, str, int].connect(self.startGoogleAPISearchTask)
         firstSearchClient.searchCountUpdated[int, str].connect(self.updateSearchCount)
 
@@ -103,21 +108,49 @@ class ImageSearchScraperApp(QMainWindow):
         self.center()
         self.show()
 
-    @pyqtSlot(str, str, int)
-    def startGoogleSearchTask(self, directory: str, query: str, numImages: int):
+    def startSearchTask(self, client: SupportedSearchClients, directory: str, query: str, numImages: int, apiKey: str = None, cseID: str = None):
         """
-        Start Google Image Scraper search task
+        Start an image search and download in a worker thread, and start tracking its download progress
         """
-        directory = directory + '/Google_API'
         self.downloadProgressDock.addProgressItem(reduceString(directory + '/' + query))
         idx = self.downloadProgressDock.getItemCount() - 1
         self.thread = QThread(self)
-        self.searchTask = SearchTask(idx, SupportedSearchClients.GOOGLE, directory, query, numImages)
+        self.searchTask = SearchTask(idx, client, directory, query, numImages, apiKey=apiKey, cseID=cseID)
         self.searchTask.moveToThread(self.thread)
         self.searchTask.finished.connect(self.thread.terminate)
         self.searchTask.updateProgress[int, float].connect(self.downloadProgressDock.setProgressItemValue)
         self.thread.started.connect(self.searchTask.executeSearchTask)
         self.thread.start()
+
+    def center(self):
+        """
+        Utility function to center the UI window on a user's screen
+        """
+        qtRectangle = self.frameGeometry()
+        centerPoint = QDesktopWidget().availableGeometry().center()
+        qtRectangle.moveCenter(centerPoint)
+        self.move(qtRectangle.topLeft())
+
+    def closeEvent(self, event):
+        """
+        QMainWindow closeEvent handler
+        """
+        mboxtitle = 'Exit'
+        mboxmsg = 'Are you sure you want to quit?'
+        reply = QMessageBox.warning(self, mboxtitle, mboxmsg,
+                                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
+            self.show()
+
+    @pyqtSlot(str, str, int)
+    def startGoogleSearchTask(self, directory: str, query: str, numImages: int):
+        """
+        Start Google Image Scraper search task
+        """
+        self.startSearchTask(SupportedSearchClients.GOOGLE, directory + '/google', query, numImages)
         
 
     @pyqtSlot(str, str, str, int)
@@ -125,32 +158,20 @@ class ImageSearchScraperApp(QMainWindow):
         """
         Start Bing Image Search API search task
         """
-        print('Start Bing Image Search API search task')
+        self.startSearchTask(SupportedSearchClients.BING_API, directory + '/bing-api', query, numImages, apiKey)
 
     @pyqtSlot(str, str, str, str, int)
     def startGoogleAPISearchTask(self, apiKey: str, cseID: str, directory: str, query: str, numImages: int):
         """
         Start Google Custom Search JSON API search task
         """
-        print('Start Google Custom Search JSON API search task')
-
-    @pyqtSlot()
-    def updateToolbar(self):
-        self.toolbar.setSearchAllEnabled(self.searchCount > 0)
-        self.toolbar.setDeleteAllEnabled(self.clientCount > 0)
-
-    @pyqtSlot()
-    def setDefaultSaveDirectory(self):
-        selected = QFileDialog.getExistingDirectory(self, 'Save images to the directory',
-                                                    self.defaultSaveDir, QFileDialog.ShowDirsOnly)
-        if selected:
-            self.defaultSaveDir = selected
-            for s in self.clientsLayout.parentWidget().findChildren(SearchClient):
-                s.setDefaultSaveDirectory(self.defaultSaveDir)
-                # print('Changed default save directory')
+        self.startSearchTask(SupportedSearchClients.GOOGLE_API, directory + '/google-api', query, numImages, apiKey, cseID)
 
     @pyqtSlot()
     def removeAllSearchClients(self):
+        """
+        Remove all search client instances in the UI
+        """
         mboxtitle = 'Delete All'
         mboxmsg = 'Are you sure you want to delete all search client instances and their corresponding queries?'
         reply = QMessageBox.warning(self, mboxtitle, mboxmsg,
@@ -159,13 +180,37 @@ class ImageSearchScraperApp(QMainWindow):
             for s in self.clientsLayout.parentWidget().findChildren(SearchClient):
                 s.destroy()
 
+    @pyqtSlot()
+    def searchAllQueries(self):
+        """
+        Start a search and download for all the non-empty queries
+        """
+        for s in self.clientsLayout.parentWidget().findChildren(SearchBox):
+            if s.searchQuery():
+                s.searchButton.click()
+
+    @pyqtSlot()
+    def setDefaultSaveDirectory(self):
+        """
+        Set the default save root directory for all queries
+        """
+        selected = QFileDialog.getExistingDirectory(self, 'Save images to the directory',
+                                                    self.defaultSaveDir, QFileDialog.ShowDirsOnly)
+        if selected:
+            self.defaultSaveDir = selected
+            for s in self.clientsLayout.parentWidget().findChildren(SearchClient):
+                s.setDefaultSaveDirectory(self.defaultSaveDir)
+
     @pyqtSlot(SupportedSearchClients)
     def addSearchClient(self, client: SupportedSearchClients):
+        """
+        Add a search client widget to the UI
+        """
         self.clientCount += 1
         self.searchCount += 1
         clientWidget = SearchClient(client, self.defaultSaveDir)
         self.clientsLayout.addWidget(clientWidget)
-        clientWidget.delete.connect(self.updateClientCount)
+        clientWidget.delete.connect(self.decrementClientCount)
         clientWidget.searchCountUpdated[int, str].connect(self.updateSearchCount)
         if client == SupportedSearchClients.GOOGLE_API:
             clientWidget.search[str, str, str, str, int].connect(self.startGoogleAPISearchTask)
@@ -176,13 +221,18 @@ class ImageSearchScraperApp(QMainWindow):
         self.clientCountUpdated.emit()
 
     @pyqtSlot()
-    def updateClientCount(self):
+    def decrementClientCount(self):
+        """
+        Decrement the client count
+        """
         self.clientCount -= 1
-        # print(f'Client count: {self.clientCount}')
         self.clientCountUpdated.emit()
 
     @pyqtSlot(int, str)
     def updateSearchCount(self, count: int, action: str):
+        """
+        Update the search boxes count based on action (add/remove)
+        """
         if action == 'added':
             self.searchCount += count
         elif action == 'removed':
@@ -190,22 +240,13 @@ class ImageSearchScraperApp(QMainWindow):
         # print(f'Search count: {self.searchCount} ({action} {count})')
         self.searchCountUpdated.emit()
 
-    def center(self):
-        qtRectangle = self.frameGeometry()
-        centerPoint = QDesktopWidget().availableGeometry().center()
-        qtRectangle.moveCenter(centerPoint)
-        self.move(qtRectangle.topLeft())
-
-    def closeEvent(self, event):
-        mboxtitle = 'Exit'
-        mboxmsg = 'Are you sure you want to quit?'
-        reply = QMessageBox.warning(self, mboxtitle, mboxmsg,
-                                    QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
-            self.show()
+    @pyqtSlot()
+    def updateToolbar(self):
+        """
+        Update the toolbar buttons state (enabled or disabled)
+        """
+        self.toolbar.setSearchAllEnabled(self.searchCount > 0)
+        self.toolbar.setDeleteAllEnabled(self.clientCount > 0)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

@@ -22,11 +22,11 @@ class DirectorySelector(QWidget):
         # Connect icon to QFileDialog
         dirSelect.clicked.connect(self.directoryDialog)
 
-    def setSelectedDirectory(self, directory: str):
-        self.directory.setText(directory)
-
     def selectedDirectory(self):
         return self.directory.text()
+
+    def setSelectedDirectory(self, directory: str):
+        self.directory.setText(directory)
 
     @pyqtSlot()
     def directoryDialog(self):

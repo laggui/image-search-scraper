@@ -82,11 +82,6 @@ class SearchClient(QGroupBox):
         searchBox.search[str, str, int].connect(self.searchRequest)
         self.addQuery.add.connect(self.addSearchBox)
 
-    def setDefaultSaveDirectory(self, directory: str):
-        self.defaultSaveDirectory = directory
-        for s in self.queriesLayout.parentWidget().findChildren(SearchBox):
-            s.setSaveDirectory(directory)
-
     def addSearchBox(self):
         self.searchCount += 1
         searchBox = SearchBox(self.maxResults, f'Query #{self.searchCount}', self.defaultSaveDirectory)
@@ -94,6 +89,11 @@ class SearchClient(QGroupBox):
         searchBox.delete.connect(self.updateSearchBoxTitles)
         searchBox.search[str, str, int].connect(self.searchRequest)
         self.searchCountUpdated.emit(1, 'added')
+
+    def setDefaultSaveDirectory(self, directory: str):
+        self.defaultSaveDirectory = directory
+        for s in self.queriesLayout.parentWidget().findChildren(SearchBox):
+            s.setSaveDirectory(directory)
 
     def _clearLayout(self, layout):
         if layout is not None:
@@ -115,19 +115,9 @@ class SearchClient(QGroupBox):
             self.search[str, str, int].emit(directory, query, numImages)
 
     @pyqtSlot()
-    def updateSearchBoxTitles(self):
-        self.searchCount -= 1
-        i = self.searchCount - 1
-        for s in self.queriesLayout.parentWidget().findChildren(SearchBox):
-            if not s.deleteInProgress:
-                s.setProperties(f'Query #{self.searchCount - i}')
-                i -= 1
-        self.searchCountUpdated.emit(1, 'removed') # removed one search box
-
-    @pyqtSlot()
     def updateSearchBoxEnabledState(self):
         if self.client == SupportedSearchClients.GOOGLE_API:
-            print(len(self.apiKey.toPlainText()), len(self.cseID.toPlainText()))
+            # print(len(self.apiKey.toPlainText()), len(self.cseID.toPlainText()))
             state = len(self.apiKey.toPlainText()) == 39 and len(self.cseID.toPlainText()) == 33
         elif self.client == SupportedSearchClients.BING_API:
             state = len(self.apiKey.toPlainText()) == 39
@@ -136,6 +126,16 @@ class SearchClient(QGroupBox):
             s.setEnabled(state)
 
         self.addQuery.setEnabled(state)
+
+    @pyqtSlot()
+    def updateSearchBoxTitles(self):
+        self.searchCount -= 1
+        i = self.searchCount - 1
+        for s in self.queriesLayout.parentWidget().findChildren(SearchBox):
+            if not s.deleteInProgress:
+                s.setProperties(f'Query #{self.searchCount - i}')
+                i -= 1
+        self.searchCountUpdated.emit(1, 'removed') # removed one search box
 
     @pyqtSlot()
     def destroy(self):
