@@ -47,7 +47,7 @@ python image_search_scraper.py
 
 We currently support image scraping with Google's [Custom Search JSON API][google-api-overview] and Microsoft's [Bing Image Search API v7][bing-image-search], or without any credentials required by scraping the results of a Google Image Search's HTML content. For more information on how to get the necessary credentials in order to use this tool with Google's [Custom Search JSON API][google-api-overview] and Microsoft's [Bing Image Search API v7][bing-image-search], refer to the [prerequisites](#api-prerequisites) section.
 
-If you wish to use this tool to download images by scraping the results of a Google Image Search's HTML content, and want to get **more than 100 results** to download per query, you will need to install `[selenium][selenium-pypi]` along with the correct `[ChromeDriver][chromedriver-download]`.
+If you wish to use this tool to download images by scraping the results of a Google Image Search's HTML content, and want to get **more than 100 results** to download per query, you will need to install [selenium][selenium-pypi] along with the correct [ChromeDriver][chromedriver-download].
 
 ## Usage
 
