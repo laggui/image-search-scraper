@@ -9,3 +9,6 @@ test.py
 
 # resources
 resources.py
+
+# ChromeDriver
+webscraper/driver/*.exe
