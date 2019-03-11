@@ -1,8 +1,10 @@
-# Dataset builder tool from web image scraping
+# Image Search Scraper
 
 ## Overview
 
 This user-friendly application allows you to easily scrape the web for images that match your queries. Its friendly interface allows for single or multiple queries to automate the process of building your dataset through the use of multiple image search APIs, each allowing numerous queries. The initial intention behind the development of this tool was to facilitate the building process for deep learning image datasets when developing specific applications or working in research.
+
+![Image Search Scraper Screenshot](docs/screenshot.jpg)
 
 ----
 
@@ -45,7 +47,7 @@ python image_search_scraper.py
 
 We currently support image scraping with Google's [Custom Search JSON API][google-api-overview] and Microsoft's [Bing Image Search API v7][bing-image-search], or without any credentials required by scraping the results of a Google Image Search's HTML content. For more information on how to get the necessary credentials in order to use this tool with Google's [Custom Search JSON API][google-api-overview] and Microsoft's [Bing Image Search API v7][bing-image-search], refer to the [prerequisites](#api-prerequisites) section.
 
-If you wish to use this tool to download images by scraping the results of a Google Image Search's HTML content, and want to get *more than 100 results* to download per query, you will need to install `[selenium][selenium-pypi]` along with the correct `[ChromeDriver][chromedriver-download]`.
+If you wish to use this tool to download images by scraping the results of a Google Image Search's HTML content, and want to get **more than 100 results** to download per query, you will need to install `[selenium][selenium-pypi]` along with the correct `[ChromeDriver][chromedriver-download]`.
 
 ## Usage
 
