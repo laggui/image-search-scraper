@@ -22,7 +22,7 @@ def download_image(dest_dir: str, image_dict: dict):
     except ConnectionError as e:
         # ignore failed connection
         print(f'[WARNING] ConnectionError: "{e}".\nFailed to retrieve image from: {url}')
-        return ', 'ConnectionError'
+        return '', 'ConnectionError'
     except HTTPError:
         # ignore failed connection
         print(f'[WARNING] HTTPError {r.status_code}. Failed to retrieve image from: {url}')
