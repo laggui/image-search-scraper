@@ -2,7 +2,7 @@
 
 ### Overview
 
-This user-friendly application allows you to easily construct your very own dataset for your personal application or research needs by scraping the web for images that match your queries (classes, labels, etc.). Its friendly interface allows for single or multiple queries to automate the process of building your dataset through the use of multiple image search APIs, each allowing numerous queries.
+This user-friendly application allows you to easily scrape the web for images that match your queries. Its friendly interface allows for single or multiple queries to automate the process of building your dataset through the use of multiple image search APIs, each allowing numerous queries. The initial intention behind the development of this tool was to facilitate the building process for deep learning image datasets when developing specific applications or working in research.
 
 ----
 

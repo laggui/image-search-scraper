@@ -4,6 +4,7 @@ import sys
 import time
 import json
 import requests
+from requests.exceptions import HTTPError, ConnectionError
 
 from webscraper.download_images import download_image
 
