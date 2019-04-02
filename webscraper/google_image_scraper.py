@@ -186,5 +186,4 @@ class GoogleImageScraper():
 
                 page = page[end_content:]
                 i += 1
-        print(i)
         return items

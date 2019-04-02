@@ -33,7 +33,6 @@ class DownloadProgress(QWidget):
         self.progressBar.setValue(value)
         if value == self._max:
             self.completed.emit()
-            print('Completed')
 
     def value(self):
         return self.progressBar.value()
